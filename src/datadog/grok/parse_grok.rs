@@ -4,6 +4,7 @@ use super::{
 };
 use crate::path::parse_value_path;
 use crate::value::{ObjectMap, Value};
+#[cfg(test)]
 use std::collections::BTreeMap;
 
 /// Errors which cause the Datadog grok algorithm to stop processing and not return a parsed result.
@@ -61,7 +62,7 @@ pub fn parse_grok(
 /// Internal Errors:
 /// - `FailedToApplyFilter` - matches the rule, but there was a runtime error while applying on of the filters
 fn apply_grok_rule(source: &str, grok_rule: &GrokRule) -> Result<ParsedGrokObject, FatalError> {
-    let mut parsed = Value::Object(BTreeMap::new());
+    let mut parsed = Value::Object(crate::value::ObjectMap::new());
     let mut internal_errors = vec![];
 
     match grok_rule.pattern.match_against(source) {
@@ -1384,7 +1385,7 @@ mod tests {
             (
                 "%{data::json}",
                 r#"{"root": {"object": {"empty": {}}, "string": "abc" }}"#,
-                Ok(Value::Object(btreemap!(
+                Ok(Value::from(btreemap!(
                     "root" => btreemap! (
                         "string" => "abc"
                     )
@@ -1393,7 +1394,7 @@ mod tests {
             (
                 "%{data:field:json}",
                 r#"{"root": {"object": {"empty": {}}, "string": "abc" }}"#,
-                Ok(Value::Object(btreemap!(
+                Ok(Value::from(btreemap!(
                     "field" => btreemap!(
                         "root" => btreemap! (
                             "string" => "abc"
@@ -1403,7 +1404,7 @@ mod tests {
             (
                 r#"%{notSpace:network.destination.ip:nullIf("-")}"#,
                 "-",
-                Ok(Value::Object(btreemap!())),
+                Ok(Value::from(btreemap!())),
             ),
         ]);
     }
@@ -1412,7 +1413,7 @@ mod tests {
         test_full_grok(vec![(
             "%{data::json}",
             r#"{"a.b": "c"}"#,
-            Ok(Value::Object(btreemap!(
+            Ok(Value::from(btreemap!(
                 "a" => btreemap! (
                     "b" => "c"
                 )

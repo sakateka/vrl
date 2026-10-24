@@ -32,6 +32,12 @@ impl KeyString {
         self.0.len()
     }
 
+    /// Returns the allocated capacity of the key.
+    #[must_use]
+    pub const fn capacity(&self) -> usize {
+        self.0.capacity()
+    }
+
     /// Return a reference to the contained string slice.
     #[inline]
     #[must_use]

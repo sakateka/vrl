@@ -323,7 +323,7 @@ mod non_wasm {
 use non_wasm::*;
 
 static DEFAULT_METHOD: Value = Value::from_static_str("get");
-static DEFAULT_HEADERS: Value = Value::Object(std::collections::BTreeMap::new());
+static DEFAULT_HEADERS: Value = Value::Object(crate::value::ObjectMap::new());
 static DEFAULT_BODY: Value = Value::from_static_str("");
 static DEFAULT_REDACT_HEADERS: Value = Value::Boolean(true);
 

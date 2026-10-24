@@ -1,5 +1,5 @@
+use crate::value::object_map;
 use std::collections::HashSet;
-use std::collections::btree_map;
 
 use crate::compiler::expression::Expr;
 use crate::compiler::prelude::*;
@@ -187,7 +187,7 @@ impl FunctionExpression for FlattenFn {
 
 /// An iterator to walk over maps allowing us to flatten nested maps to a single level.
 struct MapFlatten<'a> {
-    values: btree_map::Iter<'a, KeyString, Value>,
+    values: object_map::Iter<'a>,
     separator: &'a str,
     inner: Option<Box<MapFlatten<'a>>>,
     parent: Option<KeyString>,
@@ -196,7 +196,7 @@ struct MapFlatten<'a> {
 
 impl<'a> MapFlatten<'a> {
     fn new(
-        values: btree_map::Iter<'a, KeyString, Value>,
+        values: object_map::Iter<'a>,
         separator: &'a str,
         except: &'a HashSet<KeyString>,
     ) -> Self {
@@ -211,7 +211,7 @@ impl<'a> MapFlatten<'a> {
 
     fn new_from_parent(
         parent: KeyString,
-        values: btree_map::Iter<'a, KeyString, Value>,
+        values: object_map::Iter<'a>,
         separator: &'a str,
         except: &'a HashSet<KeyString>,
     ) -> Self {

@@ -2,16 +2,14 @@
 //! that are sufficient to process a `roxmltree::Node`.
 
 use crate::compiler::prelude::*;
+use crate::value::object_map::Entry;
 use regex::{Regex, RegexBuilder};
 // Re-export `roxmltree` to match the public API of `process_node`.
 use roxmltree::NodeType;
 pub use roxmltree::{Document, Node};
 use rust_decimal::prelude::Zero;
+use std::borrow::Cow;
 use std::sync::LazyLock;
-use std::{
-    borrow::Cow,
-    collections::{BTreeMap, btree_map::Entry},
-};
 
 /// A lazily initialized regular expression that matches excess whitespace between XML/HTML tags.
 ///
@@ -164,7 +162,7 @@ pub fn parse_xml(value: Value, options: ParseOptions) -> Resolved {
 pub fn process_node(node: Node, config: &ParseXmlConfig) -> Value {
     // Helper to recurse over a `Node`s children, and build an object.
     let recurse = |node: Node| -> ObjectMap {
-        let mut map = BTreeMap::new();
+        let mut map = ObjectMap::new();
 
         // Expand attributes, if required.
         if config.include_attr {
@@ -232,7 +230,7 @@ pub fn process_node(node: Node, config: &ParseXmlConfig) -> Value {
 
                         // If the node is an element, treat it as an object.
                         if node.is_element() {
-                            let mut map = BTreeMap::new();
+                            let mut map = ObjectMap::new();
 
                             map.insert(
                                 node.tag_name().name().to_string().into(),

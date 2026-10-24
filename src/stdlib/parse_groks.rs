@@ -69,7 +69,7 @@ use non_wasm::*;
 #[cfg(not(target_arch = "wasm32"))]
 use std::{fs::File, io::BufReader, path::Path};
 
-static DEFAULT_ALIASES: Value = Value::Object(std::collections::BTreeMap::new());
+static DEFAULT_ALIASES: Value = Value::Object(crate::value::ObjectMap::new());
 static DEFAULT_ALIAS_SOURCES: Value = Value::Array(vec![]);
 
 const PARAMETERS: &[Parameter] = &[
@@ -474,7 +474,7 @@ mod test {
                     "_x_forwarded_for": r#"%{regex("[^\\\"]*"):http._x_forwarded_for:nullIf("-")}"#
                 })
             ],
-            want: Ok(Value::Object(btreemap! {
+            want: Ok(Value::from(btreemap! {
                 "date_access" => "13/Jul/2016:10:55:36",
                 "duration" => 202_000_000,
                 "http" => btreemap! {

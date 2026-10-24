@@ -4,6 +4,7 @@
 #![allow(clippy::cast_possible_wrap, clippy::cast_sign_loss)]
 
 pub mod kind;
+pub mod object_map;
 pub mod secrets;
 
 #[allow(clippy::module_inception)]
@@ -32,13 +33,13 @@ macro_rules! value {
     });
 
     ({}) => ({
-        $crate::value::Value::Object(::std::collections::BTreeMap::default())
+        $crate::value::Value::Object($crate::value::ObjectMap::default())
     });
 
     ({$($($k1:literal)? $($k2:ident)?: $v:tt),+ $(,)?}) => ({
         let map = vec![$((String::from($($k1)? $(stringify!($k2))?).into(), $crate::value!($v))),+]
             .into_iter()
-            .collect::<::std::collections::BTreeMap<_, $crate::value::Value>>();
+            .collect::<$crate::value::ObjectMap>();
 
         $crate::value::Value::Object(map)
     });

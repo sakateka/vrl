@@ -51,7 +51,7 @@ impl Value {
 
 #[cfg(test)]
 mod at_path_tests {
-    use std::collections::BTreeMap;
+    use crate::value::ObjectMap as BTreeMap;
 
     use crate::path;
     use crate::path::parse_value_path;

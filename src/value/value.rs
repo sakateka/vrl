@@ -10,8 +10,10 @@ use bytestring::ByteString;
 use chrono::{DateTime, SecondsFormat, Utc};
 use ordered_float::NotNan;
 use std::borrow::Cow;
+use std::cmp::Ordering;
+#[cfg(test)]
+use std::collections::BTreeMap;
 use std::hash::{Hash, Hasher};
-use std::{cmp::Ordering, collections::BTreeMap};
 
 use super::KeyString;
 use crate::path::ValuePath;
@@ -33,7 +35,7 @@ mod serde;
 pub type StdError = Box<dyn std::error::Error + Send + Sync + 'static>;
 
 /// The storage mapping for the `Object` variant.
-pub type ObjectMap = BTreeMap<KeyString, Value>;
+pub use super::object_map::ObjectMap;
 
 /// The main value type used in Vector events, and VRL.
 #[derive(Debug, Clone)]

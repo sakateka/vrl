@@ -1,5 +1,3 @@
-use std::collections::BTreeMap;
-
 use regex::{CaptureMatches, CaptureNames, Captures, Regex};
 
 use crate::compiler::prelude::*;
@@ -92,7 +90,7 @@ const STRING_NAME: &str = "string";
 const CAPTURES_NAME: &str = "captures";
 
 fn captures_to_value(captures: &Captures, capture_names: CaptureNames) -> Value {
-    let mut object: ObjectMap = BTreeMap::new();
+    let mut object: ObjectMap = ObjectMap::new();
 
     // The full match, named "string"
     object.insert(STRING_NAME.into(), captures.get(0).unwrap().as_str().into());
@@ -243,7 +241,7 @@ impl Function for ReplaceWith {
         use closure::{Definition, Input, Output, Variable, VariableKind};
 
         let match_type = Collection::from_parts(
-            BTreeMap::from([
+            std::collections::BTreeMap::from([
                 (STRING_NAME.into(), Kind::bytes()),
                 (
                     CAPTURES_NAME.into(),

@@ -364,7 +364,7 @@ mod test {
                 CompactOptions::default(),
             ),
             (
-                ObjectMap::from([
+                std::collections::BTreeMap::from([
                     (KeyString::from("key1"), Value::from(1)),
                     (
                         KeyString::from("key2"),
@@ -372,7 +372,7 @@ mod test {
                     ),
                     (KeyString::from("key3"), Value::from(2)),
                 ]),
-                ObjectMap::from([
+                std::collections::BTreeMap::from([
                     (KeyString::from("key1"), Value::from(1)),
                     (
                         KeyString::from("key2"),
@@ -387,7 +387,7 @@ mod test {
                 CompactOptions::default(),
             ),
             (
-                ObjectMap::from([
+                std::collections::BTreeMap::from([
                     (KeyString::from("key1"), Value::from(1)),
                     (
                         KeyString::from("key2"),
@@ -395,7 +395,7 @@ mod test {
                     ),
                     (KeyString::from("key3"), Value::from(2)),
                 ]),
-                ObjectMap::from([
+                std::collections::BTreeMap::from([
                     (KeyString::from("key1"), Value::from(1)),
                     (
                         KeyString::from("key2"),
@@ -409,11 +409,11 @@ mod test {
                 },
             ),
             (
-                ObjectMap::from([
+                std::collections::BTreeMap::from([
                     (KeyString::from("key1"), Value::from(1)),
                     (KeyString::from("key3"), Value::from(2)),
                 ]),
-                ObjectMap::from([
+                std::collections::BTreeMap::from([
                     (KeyString::from("key1"), Value::from(1)),
                     (
                         KeyString::from("key2"),
@@ -439,7 +439,7 @@ mod test {
         ];
 
         for (expected, original, options) in cases {
-            assert_eq!(expected, compact_object(original, &options));
+            assert_eq!(expected, compact_object(original.into(), &options));
         }
     }
 

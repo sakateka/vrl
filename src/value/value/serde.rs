@@ -1,6 +1,6 @@
-use std::{borrow::Cow, collections::BTreeMap, fmt};
+use std::{borrow::Cow, fmt};
 
-use crate::value::value::{StdError, Value, timestamp_to_string};
+use crate::value::value::{ObjectMap, StdError, Value, timestamp_to_string};
 use bytes::Bytes;
 use ordered_float::NotNan;
 use serde::de::Error as SerdeError;
@@ -194,7 +194,7 @@ impl<'de> Deserialize<'de> for Value {
             where
                 V: MapAccess<'de>,
             {
-                let mut map = BTreeMap::new();
+                let mut map = ObjectMap::new();
                 while let Some((key, value)) = visitor.next_entry()? {
                     map.insert(key, value);
                 }

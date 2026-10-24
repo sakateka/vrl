@@ -446,6 +446,12 @@ impl From<f64> for Value {
     }
 }
 
+impl From<std::collections::BTreeMap<KeyString, Value>> for Value {
+    fn from(value: std::collections::BTreeMap<KeyString, Value>) -> Self {
+        Self::Object(value.into())
+    }
+}
+
 impl From<ObjectMap> for Value {
     fn from(value: ObjectMap) -> Self {
         Self::Object(value)
