@@ -5,7 +5,7 @@ use std::{
     sync::atomic::{AtomicIsize, Ordering::Relaxed},
 };
 
-use vrl::value::{ObjectMap, Value};
+use vrl::value::{KeyString, ObjectMap, Value};
 
 struct Oracle;
 static LIVE: AtomicIsize = AtomicIsize::new(0);
@@ -117,4 +117,39 @@ fn accounting_matches_live_allocator_requests_after_ownership_changes() {
     drop(iter.next());
     drop(iter);
     assert_eq!(LIVE.load(Relaxed), baseline);
+
+    // Check both sides of inline storage and adopted over-capacity Strings.
+    for text in [
+        "",
+        "short",
+        "123456789012345678901234",
+        "1234567890123456789012345",
+        "ключ-ключ-ключ-ключ-ключ",
+    ] {
+        let before = LIVE.load(Relaxed);
+        let key = KeyString::from(text);
+        assert_eq!(
+            key.capacity(),
+            (LIVE.load(Relaxed) - before).cast_unsigned()
+        );
+        let cloned = key.clone();
+        assert_eq!(key.as_str(), cloned.as_str());
+        assert_eq!(
+            key.capacity() + cloned.capacity(),
+            (LIVE.load(Relaxed) - before).cast_unsigned()
+        );
+        drop((key, cloned));
+        assert_eq!(LIVE.load(Relaxed), before);
+
+        let mut string = String::with_capacity(4096);
+        string.push_str(text);
+        let key = KeyString::from(string);
+        assert_eq!(
+            key.capacity(),
+            (LIVE.load(Relaxed) - before).cast_unsigned()
+        );
+        assert_eq!(key.as_str(), text);
+        drop(key);
+        assert_eq!(LIVE.load(Relaxed), before);
+    }
 }

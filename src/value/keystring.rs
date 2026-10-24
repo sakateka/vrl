@@ -1,21 +1,36 @@
 use std::borrow::Cow;
 use std::fmt::{self, Display, Formatter};
 
+#[cfg(any(test, feature = "proptest"))]
+use proptest::strategy::Strategy as _;
 use serde::{Deserialize, Serialize};
+
+// Keep String on 32-bit targets, where CompactString can allocate additional
+// capacity metadata that its public capacity() does not include.
+#[cfg(target_pointer_width = "64")]
+type KeyStorage = compact_str::CompactString;
+#[cfg(not(target_pointer_width = "64"))]
+type KeyStorage = String;
 
 /// The key type value. This is a simple zero-overhead wrapper set up to make it explicit that
 /// object keys are read-only and their underlying type is opaque and may change for efficiency.
 #[derive(Clone, Debug, Deserialize, Eq, Hash, Ord, PartialEq, PartialOrd, Serialize)]
 #[cfg_attr(any(test, feature = "proptest"), derive(proptest_derive::Arbitrary))]
 #[serde(transparent)]
-pub struct KeyString(String);
+pub struct KeyString(
+    #[cfg_attr(
+        any(test, feature = "proptest"),
+        proptest(strategy = "proptest::arbitrary::any::<String>().prop_map(Into::into)")
+    )]
+    KeyStorage,
+);
 
 impl KeyString {
     /// Convert the key into a boxed slice of bytes (`u8`).
     #[inline]
     #[must_use]
     pub fn into_bytes(self) -> Box<[u8]> {
-        self.0.into_bytes().into()
+        String::from(self).into_bytes().into()
     }
 
     /// Is this string empty?
@@ -34,7 +49,11 @@ impl KeyString {
 
     /// Returns the allocated capacity of the key.
     #[must_use]
-    pub const fn capacity(&self) -> usize {
+    pub fn capacity(&self) -> usize {
+        #[cfg(target_pointer_width = "64")]
+        if !self.0.is_heap_allocated() {
+            return 0;
+        }
         self.0.capacity()
     }
 
@@ -85,7 +104,7 @@ impl From<&str> for KeyString {
 
 impl From<String> for KeyString {
     fn from(s: String) -> Self {
-        Self(s)
+        Self(s.into())
     }
 }
 
@@ -97,7 +116,7 @@ impl From<Cow<'_, str>> for KeyString {
 
 impl From<KeyString> for String {
     fn from(s: KeyString) -> Self {
-        s.0
+        s.0.into()
     }
 }
 
@@ -108,7 +127,7 @@ impl quickcheck::Arbitrary for KeyString {
     }
 
     fn shrink(&self) -> Box<dyn Iterator<Item = Self>> {
-        let s = self.0.clone();
+        let s = String::from(self.clone());
         Box::new(s.shrink().map(Into::into))
     }
 }
@@ -128,7 +147,7 @@ mod lua {
 
     impl IntoLua for KeyString {
         fn into_lua(self, lua: &Lua) -> LuaResult<LuaValue> {
-            self.0.into_lua(lua)
+            String::from(self).into_lua(lua)
         }
     }
 }

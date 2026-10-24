@@ -403,8 +403,19 @@ impl Extend<(KeyString, Value)> for ObjectMap {
 impl FromIterator<(KeyString, Value)> for ObjectMap {
     #[inline]
     fn from_iter<T: IntoIterator<Item = (KeyString, Value)>>(values: T) -> Self {
+        let values = values.into_iter();
         let mut counter = 0;
-        let inner = with_counter(&mut counter, || values.into_iter().collect());
+        let inner = with_counter(&mut counter, || {
+            // Bulk collection allocates a temporary Vec to sort its input.
+            // Tiny objects do not need that allocation; keep bulk building for larger ones.
+            if values.size_hint().1.is_some_and(|len| len <= 2) {
+                let mut inner = BTreeMap::new_in(NodeAllocator);
+                inner.extend(values);
+                inner
+            } else {
+                values.collect()
+            }
+        });
         Self { inner, counter }
     }
 }
