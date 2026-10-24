@@ -7,7 +7,6 @@ use std::{
     fmt,
     hash::{Hash, Hasher},
     iter::FusedIterator,
-    mem::ManuallyDrop,
     ops::{Index, RangeBounds},
     ptr::NonNull,
 };
@@ -449,7 +448,7 @@ impl<'de> Deserialize<'de> for ObjectMap {
 
 /// An owning iterator which retains allocation bookkeeping until its last node is dropped.
 pub struct IntoIter {
-    inner: ManuallyDrop<map::IntoIter<KeyString, Value, NodeAllocator>>,
+    inner: map::IntoIter<KeyString, Value, NodeAllocator>,
     counter: usize,
 }
 impl Iterator for IntoIter {
@@ -480,7 +479,7 @@ impl IntoIterator for ObjectMap {
         let inner = std::mem::replace(&mut self.inner, BTreeMap::new_in(NodeAllocator));
         let iter = with_counter(&mut self.counter, || inner.into_iter());
         IntoIter {
-            inner: ManuallyDrop::new(iter),
+            inner: iter,
             counter: std::mem::take(&mut self.counter),
         }
     }
@@ -519,10 +518,10 @@ impl Drop for IntoIter {
     #[inline]
     fn drop(&mut self) {
         with_counter(&mut self.counter, || {
-            // SAFETY: Drop runs exactly once; nodes are released while their counter is installed.
-            unsafe {
-                ManuallyDrop::drop(&mut self.inner);
-            }
+            drop(std::mem::replace(
+                &mut self.inner,
+                BTreeMap::new_in(NodeAllocator).into_iter(),
+            ));
         });
     }
 }
