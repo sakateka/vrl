@@ -97,7 +97,7 @@ impl Value {
     }
 
     /// Returns a string description of the value type
-    pub const fn kind_str(&self) -> &str {
+    pub const fn kind_str(&self) -> &'static str {
         match self {
             Self::Bytes(_) | Self::String(_) | Self::Regex(_) => "string",
             Self::Timestamp(_) => "timestamp",

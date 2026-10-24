@@ -157,10 +157,10 @@ fn convert_value_raw(
     kind: &Kind,
     options: &Options,
 ) -> Result<prost_reflect::Value, String> {
-    let kind_str = value.kind_str().to_owned();
+    let kind_str = value.kind_str();
     match value {
-        Value::String(s) => convert_utf8(&s, kind, &kind_str),
-        Value::Bytes(b) => convert_bytes_like(b, kind, &kind_str),
+        Value::String(s) => convert_utf8(&s, kind, kind_str),
+        Value::Bytes(b) => convert_bytes_like(b, kind, kind_str),
         value => match (value, kind) {
             (Value::Boolean(b), Kind::Bool) => Ok(prost_reflect::Value::Bool(b)),
             (Value::Integer(i), Kind::Bool) => Ok(prost_reflect::Value::Bool(i != 0)),
@@ -300,19 +300,19 @@ pub fn encode_message(
     options: &Options,
 ) -> Result<DynamicMessage, String> {
     let mut message = DynamicMessage::new(message_descriptor.clone());
-    if let Value::Object(map) = value {
+    if let Value::Object(mut map) = value {
         for field in message_descriptor.fields() {
             let field_name = if options.use_json_names {
                 field.json_name()
             } else {
                 field.name()
             };
-            match map.get(field_name) {
+            match map.remove(field_name) {
                 None | Some(Value::Null) => message.clear_field(&field),
                 Some(value) => message
                     .try_set_field(
                         &field,
-                        convert_value(&field, value.clone(), options)
+                        convert_value(&field, value, options)
                             .map_err(|e| format!("Error converting {field_name} field: {e}"))?,
                     )
                     .map_err(|e| format!("Error setting {field_name} field: {e}"))?,
